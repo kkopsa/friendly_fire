@@ -1,0 +1,8 @@
+{
+    "URL": "localhost",
+    "DbName": "friendlyFire",
+    "Tables": {
+        "users": "Users",
+        "wars": "Wars"
+    }
+}

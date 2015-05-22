@@ -15,46 +15,35 @@ const (
 )
 
 type (
+	
+	MgoDB struct {
+		DInfo mgo.DialInfo
+		DSession *Session
+		DWaitGroup sync.WaitGroup
+		
+	}
 
 	Config struct {
 		URL string
 		DbName string
 		Tables map[string]string
 	}
-
-	// Coordinates struct {
-	// 	Latitude float64
-	// 	Longitude float64
-	// }
 	
 	// User model
 	User struct {
 		Username           string        `bson:"username"`
 		ID                 bson.ObjectId `bson:"_id,omitempty"`
 		SaltedPass         string        `bson:"salted_pass"`
-		WarInvitations     []string      `bson:"war_invites"`
 		ContractOfWar      string        `bson:"contract_of_war"`
 		PrevLocation       []float64     `bson:"coordinates"`
-		FriendInvites      []string      `bson:"friend_invites"`
-		InvitationsSent    []string      `bson:"friend_invites_sent"`
-		WarInvitationsSent []string      `bson:"war_invites_sent"`
 	}
 
 	// Mine 
 	Mine struct {
 		ID          bson.ObjectId `bson:"_id,omitempty"`
 		Location    []float64     `bson:"coordinates"`
-		BlastRadius int32         `bson:"blast_radius"`
 		OwnerId     string        `bson:"owner_id"`
-	}
-
-	// War
-	ContractOfWar struct {
-		ID        bson.ObjectId `bson:"_id,omitempty"`
-		RedTeam   []string      `bson:"red_team"`
-		BlueTeam  []string      `bson:"blue_team"`
-		RedMines  []Mine        `bson:"red_mines"`
-		BlueMines []Mine        `bson:"blue_mines"`
+		Status      bool          `bson:"status"`
 	}
 )
 
@@ -104,20 +93,8 @@ func CreateNewUser(username, password string, waitGroup *sync.WaitGroup, mongoSe
 		return
 	}
 
-	log.Printf("CreateUser : created user : %s\n", username)
-	
-	// log.Printf("RunQuery : %d : Executing\n", query)
- 
-	// // Retrieve the list of stations.
-	// var buoyStations []BuoyStation
-	// err := collection.Find(nil).All(&buoyStations)
-	// if err != nil {
-	// 	log.Printf("RunQuery : ERROR : %s\n", err)
-	// 	return
-	// }
- 
-	// log.Printf("RunQuery : %d : Count[%d]\n", query, len(buoyStations))
-	
+	log.Printf("CreateUser : created user : %s\n", username)	
+
 }
 
 func CreateWar(username string, waitGroup *sync.WaitGroup, mongoSession *mgo.Session) {

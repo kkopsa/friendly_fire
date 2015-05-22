@@ -3,9 +3,6 @@ package main
 import (
 	"testing"
 	"gopkg.in/mgo.v2"
-   //	"gopkg.in/mgo.v2/bson"
-	// "labix.org/v2/mgo"
-	// "labix.org/v2/mgo/bson"
 	"log"
 	"sync"
 	"time"

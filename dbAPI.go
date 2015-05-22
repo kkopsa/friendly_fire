@@ -18,7 +18,7 @@ type (
 	
 	MgoDB struct {
 		DInfo mgo.DialInfo
-		DSession *Session
+		DSession *mgo.Session
 		DWaitGroup sync.WaitGroup
 		
 	}
@@ -156,7 +156,7 @@ func SetMine(username string, coordinates float64,
 }
 
 
-func GetUser(username string, waitGroup *sync.WaitGroup, mongoSession *mgo.Session) {
+func GetUser(username string, waitGroup *sync.WaitGroup, mongoSession *mgo.Session) []User {
 
 	// Decrement the wait group count so the program knows this
 	// has been completed once the goroutine exits.
@@ -175,11 +175,12 @@ func GetUser(username string, waitGroup *sync.WaitGroup, mongoSession *mgo.Sessi
 	err := collection.Find(nil).All(&users)
 	if err != nil {
 		//log.Fatal(err)
-		log.Printf("SetMine : ERROR : %s\n", err)
+		log.Printf("GetUsers : ERROR : %s\n", err)
 		return
 	}
-
-	log.Printf("SetMine : created mine : %s\n", username)
+	log.Printf(username)
+	log.Printf("GetUsers : created mine : %s\n", users)
+	return users
 }
 
 

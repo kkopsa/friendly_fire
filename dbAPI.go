@@ -34,7 +34,7 @@ type (
 		Username           string        `bson:"username"`
 		ID                 bson.ObjectId `bson:"_id,omitempty"`
 		SaltedPass         string        `bson:"salted_pass"`
-		ContractOfWar      string        `bson:"contract_of_war"`
+//		ContractOfWar      string        `bson:"contract_of_war"`
 		PrevLocation       []float64     `bson:"coordinates"`
 	}
 
@@ -69,15 +69,15 @@ func getConfig() Config {
 // 	return session.DB(db.DbName).C(db.Tables[""])
 // }
 
-func CreateNewUser(username, password string, waitGroup *sync.WaitGroup, mongoSession *mgo.Session) {
+func CreateNewUser(username, password string) {
 	// Decrement the wait group count so the program knows this
 	// has been completed once the goroutine exits.
-	defer waitGroup.Done()
+	//defer WaitGroup.Done()
  
 	// Request a socket connection from the session to process our query.
 	// Close the session when the goroutine exits and put the connection back
 	// into the pool.
-	sessionCopy := mongoSession.Copy()
+	sessionCopy := MongoSession.Copy()
 	defer sessionCopy.Close()
  
 	// Get a collection to execute the query against.
@@ -97,53 +97,48 @@ func CreateNewUser(username, password string, waitGroup *sync.WaitGroup, mongoSe
 
 }
 
-func CreateWar(username string, waitGroup *sync.WaitGroup, mongoSession *mgo.Session) {
+// func CreateWar(username string, waitGroup *sync.WaitGroup, mongoSession *mgo.Session) {
 
-	// Decrement the wait group count so the program knows this
-	// has been completed once the goroutine exits.
-	defer waitGroup.Done()
+// 	// Decrement the wait group count so the program knows this
+// 	// has been completed once the goroutine exits.
+// 	defer waitGroup.Done()
+ 
+// 	// Request a socket connection from the session to process our query.
+// 	// Close the session when the goroutine exits and put the connection back
+// 	// into the pool.
+// 	sessionCopy := mongoSession.Copy()
+// 	defer sessionCopy.Close()
+ 
+// 	// Get a collection to execute the query against.
+// 	collection := sessionCopy.DB("FriendlyFire").C("wars")
+ 
+// 	war := ContractOfWar{}
+// 	war.RedTeam = []string{username}
+// 	war.BlueTeam = []string{"SomeGuy"}
+
+// 	err := collection.Insert(war)
+// 	if err != nil {
+// 		log.Printf("CreateWar : ERROR : %s\n", err)
+// 		return
+// 	}
+
+// 	log.Printf("CreateWar : created war : %s\n", war.ID)
+// }
+
+
+func SetMine(username string, coordinates []float64) {
  
 	// Request a socket connection from the session to process our query.
 	// Close the session when the goroutine exits and put the connection back
 	// into the pool.
-	sessionCopy := mongoSession.Copy()
-	defer sessionCopy.Close()
- 
-	// Get a collection to execute the query against.
-	collection := sessionCopy.DB("FriendlyFire").C("wars")
- 
-	war := ContractOfWar{}
-	war.RedTeam = []string{username}
-	war.BlueTeam = []string{"SomeGuy"}
-
-	err := collection.Insert(war)
-	if err != nil {
-		log.Printf("CreateWar : ERROR : %s\n", err)
-		return
-	}
-
-	log.Printf("CreateWar : created war : %s\n", war.ID)
-}
-
-
-func SetMine(username string, coordinates float64, 
-	          waitGroup *sync.WaitGroup, mongoSession *mgo.Session) {
-
-	// Decrement the wait group count so the program knows this
-	// has been completed once the goroutine exits.
-	defer waitGroup.Done()
- 
-	// Request a socket connection from the session to process our query.
-	// Close the session when the goroutine exits and put the connection back
-	// into the pool.
-	sessionCopy := mongoSession.Copy()
+	sessionCopy := MongoSession.Copy()
 	defer sessionCopy.Close()
  
 	// Get a collection to execute the query against.
 	collection := sessionCopy.DB("FriendlyFire").C("wars")
  
 	mine := Mine{}
-	mine.Location = []float64{12.212312, 23.12312}
+	mine.Location = []float64{coordinates[0], coordinates[1]}
 	
 	err := collection.Insert(mine)
 	if err != nil {
@@ -156,16 +151,16 @@ func SetMine(username string, coordinates float64,
 }
 
 
-func GetUser(username string, waitGroup *sync.WaitGroup, mongoSession *mgo.Session) []User {
+func GetUser(username string) []User {
 
 	// Decrement the wait group count so the program knows this
 	// has been completed once the goroutine exits.
-	defer waitGroup.Done()
+//	defer waitGroup.Done()
  
 	// Request a socket connection from the session to process our query.
 	// Close the session when the goroutine exits and put the connection back
 	// into the pool.
-	sessionCopy := mongoSession.Copy()
+	sessionCopy := MongoSession.Copy()
 	defer sessionCopy.Close()
  
 	// Get a collection to execute the query against.
@@ -176,7 +171,7 @@ func GetUser(username string, waitGroup *sync.WaitGroup, mongoSession *mgo.Sessi
 	if err != nil {
 		//log.Fatal(err)
 		log.Printf("GetUsers : ERROR : %s\n", err)
-		return
+		panic("Could not get users")
 	}
 	log.Printf(username)
 	log.Printf("GetUsers : created mine : %s\n", users)

@@ -10,19 +10,17 @@ import (
 
 func NewUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	fmt.Fprintln(w, "Welcome ", vars["username"])
+	
+	CreateNewUser(vars["username"], "password")
 }
 
 func Report(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	fmt.Fprintln(w, "Latitude: ", vars["lat"], "Longitude: ", vars["lon"])
-	
-	// todos := Todos{
-	// 	Todo{Name: "Write presentation"},
-	// 	Todo{Name: "Host meetup"},
-	// }
-	// if err := json.NewEncoder(w).Encode(todos); err != nil {
-	// 	panic(err)
-	// }
+	fmt.Fprintln(w, vars["username"], " reporting location: Latitude: ", vars["lat"], "Longitude: ", vars["lon"])
+}
+
+func GetUsers(w http.ResponseWriter, r *http.Request) {
+	users := GetUser("tski-user")
+	fmt.Fprintln(w, users)
 }

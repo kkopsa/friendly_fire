@@ -15,46 +15,31 @@ const (
 )
 
 type (
+	
+	MgoDB struct {
+		DInfo mgo.DialInfo
+		DSession *mgo.Session
+		DWaitGroup sync.WaitGroup
+	}
 
 	Config struct {
 		URL string
 		DbName string
 		Tables map[string]string
 	}
-
-	// Coordinates struct {
-	// 	Latitude float64
-	// 	Longitude float64
-	// }
 	
-	// User model
 	User struct {
 		Username           string        `bson:"username"`
 		ID                 bson.ObjectId `bson:"_id,omitempty"`
 		SaltedPass         string        `bson:"salted_pass"`
-		WarInvitations     []string      `bson:"war_invites"`
-		ContractOfWar      string        `bson:"contract_of_war"`
 		PrevLocation       []float64     `bson:"coordinates"`
-		FriendInvites      []string      `bson:"friend_invites"`
-		InvitationsSent    []string      `bson:"friend_invites_sent"`
-		WarInvitationsSent []string      `bson:"war_invites_sent"`
 	}
 
-	// Mine 
 	Mine struct {
 		ID          bson.ObjectId `bson:"_id,omitempty"`
 		Location    []float64     `bson:"coordinates"`
-		BlastRadius int32         `bson:"blast_radius"`
 		OwnerId     string        `bson:"owner_id"`
-	}
-
-	// War
-	ContractOfWar struct {
-		ID        bson.ObjectId `bson:"_id,omitempty"`
-		RedTeam   []string      `bson:"red_team"`
-		BlueTeam  []string      `bson:"blue_team"`
-		RedMines  []Mine        `bson:"red_mines"`
-		BlueMines []Mine        `bson:"blue_mines"`
+		Status      bool          `bson:"status"`
 	}
 )
 
@@ -70,25 +55,12 @@ func getConfig() Config {
 	return config
 }
 
-// func connect() *Collection {
-// 	session, err := mgo.Dial(db.URL)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-	
-// 	session.SetMode(mgo.Monotonic, true)
-// 	return session.DB(db.DbName).C(db.Tables[""])
-// }
-
-func CreateNewUser(username, password string, waitGroup *sync.WaitGroup, mongoSession *mgo.Session) {
-	// Decrement the wait group count so the program knows this
-	// has been completed once the goroutine exits.
-	defer waitGroup.Done()
+func CreateNewUser(username, password string) {
  
 	// Request a socket connection from the session to process our query.
 	// Close the session when the goroutine exits and put the connection back
 	// into the pool.
-	sessionCopy := mongoSession.Copy()
+	sessionCopy := MongoSession.Copy()
 	defer sessionCopy.Close()
  
 	// Get a collection to execute the query against.
@@ -104,69 +76,24 @@ func CreateNewUser(username, password string, waitGroup *sync.WaitGroup, mongoSe
 		return
 	}
 
-	log.Printf("CreateUser : created user : %s\n", username)
-	
-	// log.Printf("RunQuery : %d : Executing\n", query)
- 
-	// // Retrieve the list of stations.
-	// var buoyStations []BuoyStation
-	// err := collection.Find(nil).All(&buoyStations)
-	// if err != nil {
-	// 	log.Printf("RunQuery : ERROR : %s\n", err)
-	// 	return
-	// }
- 
-	// log.Printf("RunQuery : %d : Count[%d]\n", query, len(buoyStations))
-	
+	log.Printf("CreateUser : created user : %s\n", username)	
 }
 
-func CreateWar(username string, waitGroup *sync.WaitGroup, mongoSession *mgo.Session) {
-
-	// Decrement the wait group count so the program knows this
-	// has been completed once the goroutine exits.
-	defer waitGroup.Done()
+func SetMine(username string, coordinates []float64) {
  
 	// Request a socket connection from the session to process our query.
 	// Close the session when the goroutine exits and put the connection back
 	// into the pool.
-	sessionCopy := mongoSession.Copy()
+	sessionCopy := MongoSession.Copy()
 	defer sessionCopy.Close()
  
 	// Get a collection to execute the query against.
-	collection := sessionCopy.DB("FriendlyFire").C("wars")
- 
-	war := ContractOfWar{}
-	war.RedTeam = []string{username}
-	war.BlueTeam = []string{"SomeGuy"}
-
-	err := collection.Insert(war)
-	if err != nil {
-		log.Printf("CreateWar : ERROR : %s\n", err)
-		return
-	}
-
-	log.Printf("CreateWar : created war : %s\n", war.ID)
-}
-
-
-func SetMine(username string, coordinates float64, 
-	          waitGroup *sync.WaitGroup, mongoSession *mgo.Session) {
-
-	// Decrement the wait group count so the program knows this
-	// has been completed once the goroutine exits.
-	defer waitGroup.Done()
- 
-	// Request a socket connection from the session to process our query.
-	// Close the session when the goroutine exits and put the connection back
-	// into the pool.
-	sessionCopy := mongoSession.Copy()
-	defer sessionCopy.Close()
- 
-	// Get a collection to execute the query against.
-	collection := sessionCopy.DB("FriendlyFire").C("wars")
+	collection := sessionCopy.DB("FriendlyFire").C("mines")
  
 	mine := Mine{}
-	mine.Location = []float64{12.212312, 23.12312}
+	mine.Location = []float64{coordinates[0], coordinates[1]}
+	mine.OwnerId = username
+	mine.Status = true
 	
 	err := collection.Insert(mine)
 	if err != nil {
@@ -179,16 +106,11 @@ func SetMine(username string, coordinates float64,
 }
 
 
-func GetUser(username string, waitGroup *sync.WaitGroup, mongoSession *mgo.Session) {
-
-	// Decrement the wait group count so the program knows this
-	// has been completed once the goroutine exits.
-	defer waitGroup.Done()
- 
+func GetUser(username string) []User {
 	// Request a socket connection from the session to process our query.
 	// Close the session when the goroutine exits and put the connection back
 	// into the pool.
-	sessionCopy := mongoSession.Copy()
+	sessionCopy := MongoSession.Copy()
 	defer sessionCopy.Close()
  
 	// Get a collection to execute the query against.
@@ -198,11 +120,34 @@ func GetUser(username string, waitGroup *sync.WaitGroup, mongoSession *mgo.Sessi
 	err := collection.Find(nil).All(&users)
 	if err != nil {
 		//log.Fatal(err)
-		log.Printf("SetMine : ERROR : %s\n", err)
-		return
+		log.Printf("GetUsers : ERROR : %s\n", err)
+		panic("Could not get users")
 	}
+	log.Printf(username)
+	log.Printf("GetUsers : retrieved users : %s\n", users)
+	return users
+}
 
-	log.Printf("SetMine : created mine : %s\n", username)
+func GetAllMines() []Mine {
+	// Request a socket connection from the session to process our query.
+	// Close the session when the goroutine exits and put the connection back
+	// into the pool.
+	sessionCopy := MongoSession.Copy()
+	defer sessionCopy.Close()
+ 
+	// Get a collection to execute the query against.
+	collection := sessionCopy.DB("FriendlyFire").C("mines")
+
+	var mines []Mine
+	err := collection.Find(nil).All(&mines)
+	if err != nil {
+		//log.Fatal(err)
+		log.Printf("GetMines : ERROR : %s\n", err)
+		panic("Could not get mines")
+	}
+	log.Printf("Mine: %s", mines[len(mines) - 1])
+	log.Printf("GetMines : retrieved mines : %s\n", mines)
+	return mines
 }
 
 

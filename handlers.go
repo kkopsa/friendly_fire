@@ -1,31 +1,40 @@
 package main
 
 import (
-	"encoding/json"
+//	"encoding/json"
 	"fmt"
 	"net/http"
-	
 	"github.com/gorilla/mux"
+	"strconv"
 )
 
-func Index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Welcome!")
+func NewUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)	
+	CreateNewUser(vars["username"], "password")
 }
 
-func TodoIndex(w http.ResponseWriter, r *http.Request) {
-	todos := Todos{
-		Todo{Name: "Write presentation"},
-		Todo{Name: "Host meetup"},
-	}
-	
-	if err := json.NewEncoder(w).Encode(todos); err != nil {
-		panic(err)
-	}
-}
-
-func TodoShow(w http.ResponseWriter, r *http.Request) {
+func Report(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	todoId := vars["todoId"]
-	fmt.Fprintln(w, "Todo show:", todoId)
+	mine := "Do not set mine"
+	if (vars["setMine"] == "1") {
+		mine = "Set mine"
+		lat, err := strconv.ParseFloat(vars["lat"], 64)
+		lon, err := strconv.ParseFloat(vars["lon"], 64)
+		if err != nil {
+			panic("Failed to report mines\n")
+		}
+		coordinates := []float64{lat, lon}
+		SetMine(vars["username"], coordinates)
+	}
+	fmt.Fprintln(w, "User: ", vars["username"], " \nReporting location: \n\tLatitude: ", vars["lat"], "\n\tLongitude: ", vars["lon"], "\n\t", mine)
 }
 
+func GetUsers(w http.ResponseWriter, r *http.Request) {
+	users := GetUser("not-used-right-now")
+	fmt.Fprintln(w, users)
+}
+
+func GetMines(w http.ResponseWriter, r *http.Request) {
+	mines := GetAllMines()
+	fmt.Fprintln(w, mines)
+}

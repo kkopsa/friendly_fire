@@ -20,7 +20,6 @@ type (
 		DInfo mgo.DialInfo
 		DSession *mgo.Session
 		DWaitGroup sync.WaitGroup
-		
 	}
 
 	Config struct {
@@ -29,16 +28,13 @@ type (
 		Tables map[string]string
 	}
 	
-	// User model
 	User struct {
 		Username           string        `bson:"username"`
 		ID                 bson.ObjectId `bson:"_id,omitempty"`
 		SaltedPass         string        `bson:"salted_pass"`
-//		ContractOfWar      string        `bson:"contract_of_war"`
 		PrevLocation       []float64     `bson:"coordinates"`
 	}
 
-	// Mine 
 	Mine struct {
 		ID          bson.ObjectId `bson:"_id,omitempty"`
 		Location    []float64     `bson:"coordinates"`
@@ -59,20 +55,7 @@ func getConfig() Config {
 	return config
 }
 
-// func connect() *Collection {
-// 	session, err := mgo.Dial(db.URL)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-	
-// 	session.SetMode(mgo.Monotonic, true)
-// 	return session.DB(db.DbName).C(db.Tables[""])
-// }
-
 func CreateNewUser(username, password string) {
-	// Decrement the wait group count so the program knows this
-	// has been completed once the goroutine exits.
-	//defer WaitGroup.Done()
  
 	// Request a socket connection from the session to process our query.
 	// Close the session when the goroutine exits and put the connection back
@@ -94,37 +77,7 @@ func CreateNewUser(username, password string) {
 	}
 
 	log.Printf("CreateUser : created user : %s\n", username)	
-
 }
-
-// func CreateWar(username string, waitGroup *sync.WaitGroup, mongoSession *mgo.Session) {
-
-// 	// Decrement the wait group count so the program knows this
-// 	// has been completed once the goroutine exits.
-// 	defer waitGroup.Done()
- 
-// 	// Request a socket connection from the session to process our query.
-// 	// Close the session when the goroutine exits and put the connection back
-// 	// into the pool.
-// 	sessionCopy := mongoSession.Copy()
-// 	defer sessionCopy.Close()
- 
-// 	// Get a collection to execute the query against.
-// 	collection := sessionCopy.DB("FriendlyFire").C("wars")
- 
-// 	war := ContractOfWar{}
-// 	war.RedTeam = []string{username}
-// 	war.BlueTeam = []string{"SomeGuy"}
-
-// 	err := collection.Insert(war)
-// 	if err != nil {
-// 		log.Printf("CreateWar : ERROR : %s\n", err)
-// 		return
-// 	}
-
-// 	log.Printf("CreateWar : created war : %s\n", war.ID)
-// }
-
 
 func SetMine(username string, coordinates []float64) {
  
@@ -135,10 +88,12 @@ func SetMine(username string, coordinates []float64) {
 	defer sessionCopy.Close()
  
 	// Get a collection to execute the query against.
-	collection := sessionCopy.DB("FriendlyFire").C("wars")
+	collection := sessionCopy.DB("FriendlyFire").C("mines")
  
 	mine := Mine{}
 	mine.Location = []float64{coordinates[0], coordinates[1]}
+	mine.OwnerId = username
+	mine.Status = true
 	
 	err := collection.Insert(mine)
 	if err != nil {
@@ -152,11 +107,6 @@ func SetMine(username string, coordinates []float64) {
 
 
 func GetUser(username string) []User {
-
-	// Decrement the wait group count so the program knows this
-	// has been completed once the goroutine exits.
-//	defer waitGroup.Done()
- 
 	// Request a socket connection from the session to process our query.
 	// Close the session when the goroutine exits and put the connection back
 	// into the pool.
@@ -174,8 +124,30 @@ func GetUser(username string) []User {
 		panic("Could not get users")
 	}
 	log.Printf(username)
-	log.Printf("GetUsers : created mine : %s\n", users)
+	log.Printf("GetUsers : retrieved users : %s\n", users)
 	return users
+}
+
+func GetAllMines() []Mine {
+	// Request a socket connection from the session to process our query.
+	// Close the session when the goroutine exits and put the connection back
+	// into the pool.
+	sessionCopy := MongoSession.Copy()
+	defer sessionCopy.Close()
+ 
+	// Get a collection to execute the query against.
+	collection := sessionCopy.DB("FriendlyFire").C("mines")
+
+	var mines []Mine
+	err := collection.Find(nil).All(&mines)
+	if err != nil {
+		//log.Fatal(err)
+		log.Printf("GetMines : ERROR : %s\n", err)
+		panic("Could not get mines")
+	}
+	log.Printf("Mine: %s", mines[len(mines) - 1])
+	log.Printf("GetMines : retrieved mines : %s\n", mines)
+	return mines
 }
 
 

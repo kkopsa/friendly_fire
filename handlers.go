@@ -1,22 +1,22 @@
 package main
 
 import (
-//	"encoding/json"
+	//	"encoding/json"
 	"fmt"
-	"net/http"
 	"github.com/gorilla/mux"
+	"net/http"
 	"strconv"
 )
 
 func NewUser(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)	
+	vars := mux.Vars(r)
 	CreateNewUser(vars["username"], "password")
 }
 
 func Report(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	mine := "Do not set mine"
-	if (vars["setMine"] == "1") {
+	if vars["setMine"] == "1" {
 		mine = "Set mine"
 		lat, err := strconv.ParseFloat(vars["lat"], 64)
 		lon, err := strconv.ParseFloat(vars["lon"], 64)

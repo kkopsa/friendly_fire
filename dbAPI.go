@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"log"
+	//	"fmt"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"os"
-	"encoding/json"
+	"log"
+	//	"os"
+	//	"encoding/json"
 	"sync"
 )
 
@@ -15,57 +15,56 @@ const (
 )
 
 type (
-	
 	MgoDB struct {
-		DInfo mgo.DialInfo
-		DSession *mgo.Session
+		DInfo      mgo.DialInfo
+		DSession   *mgo.Session
 		DWaitGroup sync.WaitGroup
 	}
 
-	Config struct {
-		URL string
-		DbName string
-		Tables map[string]string
-	}
-	
+	// Config struct {
+	// 	URL string
+	// 	DbName string
+	// 	Tables map[string]string
+	// }
+
 	User struct {
-		Username           string        `bson:"username"`
-		ID                 bson.ObjectId `bson:"_id,omitempty"`
-		SaltedPass         string        `bson:"salted_pass"`
-		PrevLocation       []float64     `bson:"coordinates"`
+		Username     string        `bson:"username"`
+		ID           bson.ObjectId `bson:"_id,omitempty"`
+		SaltedPass   string        `bson:"salted_pass"`
+		PrevLocation []float64     `bson:"coordinates"`
 	}
 
 	Mine struct {
-		ID          bson.ObjectId `bson:"_id,omitempty"`
-		Location    []float64     `bson:"coordinates"`
-		OwnerId     string        `bson:"owner_id"`
-		Status      bool          `bson:"status"`
+		ID       bson.ObjectId `bson:"_id,omitempty"`
+		Location []float64     `bson:"coordinates"`
+		OwnerId  string        `bson:"owner_id"`
+		Status   bool          `bson:"status"`
 	}
 )
 
-// Returns database struct with necessary credentials to connect to database
-func getConfig() Config {
-	file, _ := os.Open(ConfigFile)
-	decoder := json.NewDecoder(file)
-	config := Config{}
-	err := decoder.Decode(&config)
-	if err != nil {
-		fmt.Println("error: ", err)
-	}
-	return config
-}
+// // Returns database struct with necessary credentials to connect to database
+// func getConfig() *mgo.DialInfo {
+// 	file, _ := os.Open(ConfigFile)
+// 	decoder := json.NewDecoder(file)
+// 	config := &mgo.DialInfo{}
+// 	err := decoder.Decode(&config)
+// 	if err != nil {
+// 		fmt.Println("error: ", err)
+// 	}
+// 	return config
+// }
 
 func CreateNewUser(username, password string) {
- 
+
 	// Request a socket connection from the session to process our query.
 	// Close the session when the goroutine exits and put the connection back
 	// into the pool.
 	sessionCopy := MongoSession.Copy()
 	defer sessionCopy.Close()
- 
+
 	// Get a collection to execute the query against.
 	collection := sessionCopy.DB("FriendlyFire").C("users")
- 
+
 	user := User{}
 	user.Username = username
 	user.SaltedPass = password
@@ -76,25 +75,25 @@ func CreateNewUser(username, password string) {
 		return
 	}
 
-	log.Printf("CreateUser : created user : %s\n", username)	
+	log.Printf("CreateUser : created user : %s\n", username)
 }
 
 func SetMine(username string, coordinates []float64) {
- 
+
 	// Request a socket connection from the session to process our query.
 	// Close the session when the goroutine exits and put the connection back
 	// into the pool.
 	sessionCopy := MongoSession.Copy()
 	defer sessionCopy.Close()
- 
+
 	// Get a collection to execute the query against.
 	collection := sessionCopy.DB("FriendlyFire").C("mines")
- 
+
 	mine := Mine{}
 	mine.Location = []float64{coordinates[0], coordinates[1]}
 	mine.OwnerId = username
 	mine.Status = true
-	
+
 	err := collection.Insert(mine)
 	if err != nil {
 		//log.Fatal(err)
@@ -105,14 +104,13 @@ func SetMine(username string, coordinates []float64) {
 	log.Printf("SetMine : created mine : %s\n", username)
 }
 
-
 func GetUser(username string) []User {
 	// Request a socket connection from the session to process our query.
 	// Close the session when the goroutine exits and put the connection back
 	// into the pool.
 	sessionCopy := MongoSession.Copy()
 	defer sessionCopy.Close()
- 
+
 	// Get a collection to execute the query against.
 	collection := sessionCopy.DB("FriendlyFire").C("users")
 
@@ -134,7 +132,7 @@ func GetAllMines() []Mine {
 	// into the pool.
 	sessionCopy := MongoSession.Copy()
 	defer sessionCopy.Close()
- 
+
 	// Get a collection to execute the query against.
 	collection := sessionCopy.DB("FriendlyFire").C("mines")
 
@@ -145,9 +143,7 @@ func GetAllMines() []Mine {
 		log.Printf("GetMines : ERROR : %s\n", err)
 		panic("Could not get mines")
 	}
-	log.Printf("Mine: %s", mines[len(mines) - 1])
+	log.Printf("Mine: %s", mines[len(mines)-1])
 	log.Printf("GetMines : retrieved mines : %s\n", mines)
 	return mines
 }
-
-

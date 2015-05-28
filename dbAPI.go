@@ -1,12 +1,9 @@
 package main
 
 import (
-	//	"fmt"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"log"
-	//	"os"
-	//	"encoding/json"
 	"sync"
 )
 
@@ -20,12 +17,6 @@ type (
 		DSession   *mgo.Session
 		DWaitGroup sync.WaitGroup
 	}
-
-	// Config struct {
-	// 	URL string
-	// 	DbName string
-	// 	Tables map[string]string
-	// }
 
 	User struct {
 		Username     string        `bson:"username"`
@@ -41,18 +32,6 @@ type (
 		Status   bool          `bson:"status"`
 	}
 )
-
-// // Returns database struct with necessary credentials to connect to database
-// func getConfig() *mgo.DialInfo {
-// 	file, _ := os.Open(ConfigFile)
-// 	decoder := json.NewDecoder(file)
-// 	config := &mgo.DialInfo{}
-// 	err := decoder.Decode(&config)
-// 	if err != nil {
-// 		fmt.Println("error: ", err)
-// 	}
-// 	return config
-// }
 
 func CreateNewUser(username, password string) {
 

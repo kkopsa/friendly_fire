@@ -1,0 +1,1 @@
+This directory will store the source code for our p2p project.
